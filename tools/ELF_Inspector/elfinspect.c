@@ -23,7 +23,7 @@ int main(int argc, char * argv[]){
                 free(magic);
                 rewind(file);
 
-                /*Data definition*/
+                /*Output strings definition*/
                 const char * machine_names[MACHINES] = {
                     [0] = "No machine",
                     [1] = "AT&T WE 32100",
@@ -164,7 +164,7 @@ int main(int argc, char * argv[]){
                 };
 
 
-
+                /* General header reading and displaying */
                 fread(&elf_headers, 64, 1, file);                
                 printf("\n[+] HEADERS\n");
 
@@ -187,10 +187,12 @@ int main(int argc, char * argv[]){
                 else printf("    Architecture: %s\n", machine_names[elf_headers.e_machine]);
                 printf("    Entry: 0x%lx\n", elf_headers.e_entry);
                 printf("\n[+] PROGRAM HEADERS\n");
-                /*Advance file pointer in e_phoff bytes*/
+                
+                /*Advance file pointer in e_phoff bytes to reach the Program Header's Table*/
                 char buf[elf_headers.e_phoff];
                 fread(buf, elf_headers.e_phoff-64, 1, file);
 
+                /* Program Headers reading and displaying */
                 if (elf_headers.e_ident[4] == 2) {
                     Elf64_Phdr program_headers;
                     for (int c = 0; c<elf_headers.e_phnum; c++){
@@ -215,7 +217,7 @@ int main(int argc, char * argv[]){
                         printf("memsize=0x%x\n", program_headers.p_memsz);
                     }
                 }
-
+            /* Error messages */
             }else{
                 printf("Not an ELF file.\nQuiting.\n");
             }
