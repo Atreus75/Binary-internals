@@ -6,6 +6,8 @@
 #define  MACHINES 101
 #define ABIS 3
 #define FILE_TYPES 5
+#define P_TYPES 8
+#define P_FLAGS 8
 
 int main(int argc, char * argv[]){
     printf("===== ELF INSPECTOR =====\n");
@@ -18,7 +20,9 @@ int main(int argc, char * argv[]){
         if (file){        
             fread(magic, 4, 1, file);
             if (strcmp(&magic[1],"ELF") == 0){
+                free(magic);
                 rewind(file);
+
                 /*Data definition*/
                 const char * machine_names[MACHINES] = {
                     [0] = "No machine",
@@ -138,6 +142,29 @@ int main(int argc, char * argv[]){
                     [2] = "Solaris\0"
                 };
 
+                const char *p_types[P_TYPES] = {
+                    [0] = "PT_NULL\0",
+                    [1] = "PT_LOAD\0",
+                    [2] = "PT_DYNAMIC\0",
+                    [3] = "PT_INTERP\0",
+                    [4] = "PT_NOTE\0",
+                    [5] = "PT_SHLIB\0",
+                    [6] = "PT_PHDR\0",
+                    [7] = "PT_TLS\0"
+                };
+                const char * p_flags[P_FLAGS] = {
+                    [0] = "None\0",
+                    [1] = "X\n",
+                    [2] = "W\0",
+                    [3] = "WX\0",
+                    [4] = "R\0",
+                    [5] = "RX\0",
+                    [6] = "RW\0",
+                    [7] = "RWX\0"
+                };
+
+
+
                 fread(&elf_headers, 64, 1, file);                
                 printf("\n[+] HEADERS\n");
 
@@ -159,9 +186,35 @@ int main(int argc, char * argv[]){
                 if (elf_headers.e_machine < 0 || elf_headers.e_machine >= MACHINES) printf("Unrecognized.\n");
                 else printf("    Architecture: %s\n", machine_names[elf_headers.e_machine]);
                 printf("    Entry: 0x%lx\n", elf_headers.e_entry);
-                /*printf("\n[+] PROGRAM HEADERS\n");*/
-                
+                printf("\n[+] PROGRAM HEADERS\n");
+                /*Advance file pointer in e_phoff bytes*/
+                char buf[elf_headers.e_phoff];
+                fread(buf, elf_headers.e_phoff-64, 1, file);
 
+                if (elf_headers.e_ident[4] == 2) {
+                    Elf64_Phdr program_headers;
+                    for (int c = 0; c<elf_headers.e_phnum; c++){
+                        printf("\n");
+                        fread(&program_headers, elf_headers.e_phentsize, 1, file);
+                        if (program_headers.p_type < 0 || program_headers.p_type >= P_TYPES) printf("[Unknown type] ");
+                        else printf("%s ", p_types[program_headers.p_type]);
+                        if (program_headers.p_flags < 0 || program_headers.p_flags >= P_FLAGS) printf("[Unknowm flags] ");
+                        else printf("%s ", p_flags[program_headers.p_flags]);
+                        printf("vaddr=0x%lx ", program_headers.p_vaddr);
+                        printf("memsize=0x%lx\n", program_headers.p_memsz);
+                    } 
+                }else{
+                    Elf32_Phdr program_headers;
+                    for (int c = 0; c<elf_headers.e_phnum; c++){
+                        fread(&program_headers, elf_headers.e_phentsize, 1, file);
+                        if (program_headers.p_type < 0 || program_headers.p_type >= P_TYPES) printf("[Unknown type] ");
+                        else printf("%s ", p_types[program_headers.p_type]);
+                        if (program_headers.p_flags < 0 || program_headers.p_flags >= P_FLAGS) printf("[Unknowm flags] ");
+                        else printf("%s ", p_flags[program_headers.p_flags]);
+                        printf("vaddr=0x%x ", program_headers.p_vaddr);
+                        printf("memsize=0x%x\n", program_headers.p_memsz);
+                    }
+                }
 
             }else{
                 printf("Not an ELF file.\nQuiting.\n");
@@ -175,6 +228,5 @@ int main(int argc, char * argv[]){
         printf("No file path given. Quiting.\n");
     }
     
-    free(magic);
     return 0;
 }
