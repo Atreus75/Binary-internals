@@ -5,9 +5,9 @@ It's a simple ELF binary file inspector that displays general header information
 # Usage
 To use the program, first compile it with:
 ```
-gcc elfinspect.c -o elfinspect
+gcc elfinspector.c -o elfinspector
 ```
 and then execute it with:
 ```
-./elfinspect [target ELF file path]
+./elfinspector [target ELF file path]
 ```
