@@ -1,5 +1,5 @@
 # ELF (Executable and Linkable Format)
-
+Por *Rodrigo Soares*
 ## Formato
 
 O ELF é um formato de arquivo binário que serve como um "manual de execução" para o sistema operacional, descrevendo todos os detalhes necessários para a execução correta de um certo programa (ou biblioteca, objeto etc). Isto vai desde qual loader utilizar, arquitetura do processador, até como devem ser armazenadas as informações e dados na memória. Abaixo pode-se observar o modelo geral de um arquivo binário ELF:
